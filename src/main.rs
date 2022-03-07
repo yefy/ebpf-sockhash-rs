@@ -43,27 +43,27 @@ fn main() -> Result<()> {
     let open_skel = skel_builder.open()?;
     let mut skel = open_skel.load()?;
 
-    let bpf_redir = skel.progs();
-    let bpf_redir = bpf_redir.bpf_redir();
-    println!("bpf_redir prog_type:{}", bpf_redir.prog_type());
-    println!("bpf_redir attach_type:{}", bpf_redir.attach_type());
-    println!("bpf_redir name:{:?}", bpf_redir.name());
-    println!("bpf_redir section:{:?}", bpf_redir.section());
+    let progs = skel.progs();
+    let bpf_sk_msg_verdict = progs.bpf_sk_msg_verdict();
+    println!("bpf_sk_msg_verdict prog_type:{}", bpf_sk_msg_verdict.prog_type());
+    println!("bpf_sk_msg_verdict attach_type:{}", bpf_sk_msg_verdict.attach_type());
+    println!("bpf_sk_msg_verdict name:{:?}", bpf_sk_msg_verdict.name());
+    println!("bpf_sk_msg_verdict section:{:?}", bpf_sk_msg_verdict.section());
 
-    let sock_ops_map_fd = skel.maps_mut().sock_ops_map().fd();
-    let _bpf_redir = skel
+    let sock_hash_fd = skel.maps_mut().sock_hash().fd();
+    let _bpf_sk_msg_verdict = skel
         .progs_mut()
-        .bpf_redir()
-        .attach_sockmap(sock_ops_map_fd)?;
+        .bpf_sk_msg_verdict()
+        .attach_sockmap(sock_hash_fd)?;
 
 
 
-    let bpf_sockmap = skel.progs();
-    let bpf_sockmap = bpf_sockmap.bpf_sockmap();
-    println!("bpf_sockmap prog_type:{}", bpf_sockmap.prog_type());
-    println!("bpf_sockmap attach_type:{}", bpf_sockmap.attach_type());
-    println!("bpf_sockmap name:{:?}", bpf_sockmap.name());
-    println!("bpf_sockmap section:{:?}", bpf_sockmap.section());
+    let progs = skel.progs();
+    let bpf_sockops = progs.bpf_sockops();
+    println!("bpf_sockops prog_type:{}", bpf_sockops.prog_type());
+    println!("bpf_sockops attach_type:{}", bpf_sockops.attach_type());
+    println!("bpf_sockops name:{:?}", bpf_sockops.name());
+    println!("bpf_sockops section:{:?}", bpf_sockops.section());
 
     let cgroup_fd = std::fs::OpenOptions::new()
         //.custom_flags(libc::O_DIRECTORY)
@@ -73,9 +73,9 @@ fn main() -> Result<()> {
         .open("/sys/fs/cgroup/unified/")
         .map_err(|e| anyhow::anyhow!("open e:{}", e))?
         .as_raw_fd();
-    let _bpf_sockmap = skel
+    let _bpf_sockops = skel
         .progs_mut()
-        .bpf_sockmap()
+        .bpf_sockops()
         .attach_cgroup(cgroup_fd)?;
 
     let running = Arc::new(AtomicBool::new(true));

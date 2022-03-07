@@ -28,7 +28,7 @@ struct {
     __uint(max_entries, 10240);
     __uint(key_size, sizeof(struct sock_key));
     __uint(value_size, sizeof(int));
-} sock_ops_map SEC(".maps");
+} sock_hash SEC(".maps");
 
 static __always_inline
 void extract_key4_from_ops(struct bpf_sock_ops *ops, struct sock_key *key)
@@ -53,7 +53,7 @@ void bpf_sock_ops_ipv4(struct bpf_sock_ops *skops)
 
     extract_key4_from_ops(skops, &key);
 
-    ret = bpf_sock_hash_update(skops, &sock_ops_map, &key, BPF_NOEXIST);
+    ret = bpf_sock_hash_update(skops, &sock_hash, &key, BPF_NOEXIST);
     if (ret != 0) {
         //bpf_printk("sock_hash_update() failed, ret: %d\n", ret);
     }
@@ -63,7 +63,7 @@ void bpf_sock_ops_ipv4(struct bpf_sock_ops *skops)
 }
 
 SEC("sockops")
-int bpf_sockmap(struct bpf_sock_ops *skops)
+int bpf_sockops(struct bpf_sock_ops *skops)
 {
     switch (skops->op) {
         case BPF_SOCK_OPS_PASSIVE_ESTABLISHED_CB:
@@ -90,11 +90,11 @@ void extract_key4_from_msg(struct sk_msg_md *msg, struct sock_key *key)
 }
 
 SEC("sk_msg")
-int bpf_redir(struct sk_msg_md *msg)
+int bpf_sk_msg_verdict(struct sk_msg_md *msg)
 {
     struct sock_key key = {};
     extract_key4_from_msg(msg, &key);
-    bpf_msg_redirect_hash(msg, &sock_ops_map, &key, BPF_F_INGRESS);
+    bpf_msg_redirect_hash(msg, &sock_hash, &key, BPF_F_INGRESS);
     return SK_PASS;
 }
 
