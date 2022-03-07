@@ -1,2 +1,2 @@
 # ebpf-sockhash-rs
-ebpf-sockhash-rs
+cargo run
